@@ -3,7 +3,7 @@
 
 // Auto-detect environment
 const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 
-    'https://your-app-name.onrender.com/api' : 
+    'https://bookstore-backend-api.onrender.com/api' : 
     'http://localhost:3002/api';
 
 class BookstoreAPIClient {
