@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bookstore-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        fromDatabase:
+          name: bookstore-db
+          property: connectionString
+
+databases:
+  - name: bookstore-db
+    databaseName: bookstore
+    user: bookstore_user
+    plan: free

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookstore API Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        .response {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .token-display {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #b3d9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bookstore API Test Client</h1>
+        <p>This is a test client for the Bookstore/Library API. Use it to test the endpoints and see how to integrate the API into your projects.</p>
+        
+        <div id="token-status" class="token-display">
+            <strong>Status:</strong> Not authenticated
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Authentication</h2>
+        
+        <div class="form-group">
+            <h3>Register New User</h3>
+            <label for="regName">Name:</label>
+            <input type="text" id="regName" placeholder="Enter name">
+            
+            <label for="regEmail">Email:</label>
+            <input type="email" id="regEmail" placeholder="Enter email">
+            
+            <label for="regPassword">Password:</label>
+            <input type="password" id="regPassword" placeholder="Enter password">
+            
+            <label for="regRole">Role:</label>
+            <select id="regRole">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="librarian">Librarian</option>
+            </select>
+            
+            <button onclick="registerUser()">Register</button>
+        </div>
+
+        <div class="form-group">
+            <h3>Login</h3>
+            <label for="loginEmail">Email:</label>
+            <input type="email" id="loginEmail" placeholder="Enter email">
+            
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" placeholder="Enter password">
+            
+            <button onclick="loginUser()">Login</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>API Operations</h2>
+        
+        <button onclick="getBooks()">Get All Books</button>
+        <button onclick="getUsers()">Get All Users</button>
+        <button onclick="getTransactions()">Get Transactions</button>
+        <button onclick="getAppointments()">Get Appointments</button>
+        <button onclick="getComments()">Get Comments</button>
+        
+        <div class="form-group">
+            <h3>Create New Book</h3>
+            <label for="bookTitle">Title:</label>
+            <input type="text" id="bookTitle" placeholder="Book title">
+            
+            <label for="bookAuthor">Author:</label>
+            <input type="text" id="bookAuthor" placeholder="Author name">
+            
+            <label for="bookIsbn">ISBN:</label>
+            <input type="text" id="bookIsbn" placeholder="ISBN">
+            
+            <label for="bookGenre">Genre:</label>
+            <input type="text" id="bookGenre" placeholder="Genre">
+            
+            <label for="bookYear">Published Year:</label>
+            <input type="number" id="bookYear" placeholder="Year">
+            
+            <label for="bookPrice">Price:</label>
+            <input type="number" id="bookPrice" step="0.01" placeholder="Price">
+            
+            <button onclick="createBook()">Create Book</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Response</h2>
+        <div id="response" class="response">No response yet...</div>
+    </div>
+
+    <script>
+        // API Client Class (simplified version)
+        class BookstoreAPIClient {
+            constructor() {
+                this.token = null;
+                // Use deployed URL if available, otherwise use local
+                this.baseURL = window.location.hostname === 'localhost' ? 
+                    'http://localhost:3002/api' : 
+                    'https://your-app-name.onrender.com/api';
+            }
+
+            setToken(token) {
+                this.token = token;
+                document.getElementById('token-status').innerHTML = 
+                    `<strong>Status:</strong> Authenticated<br><strong>Token:</strong> ${token.substring(0, 20)}...`;
+            }
+
+            async makeRequest(endpoint, options = {}) {
+                const url = `${this.baseURL}${endpoint}`;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (this.token) {
+                    headers['Authorization'] = `Bearer ${this.token}`;
+                }
+
+                const config = {
+                    ...options,
+                    headers
+                };
+
+                try {
+                    const response = await fetch(url, config);
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Request failed');
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            async register(userData) {
+                return this.makeRequest('/users/register', {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+            }
+
+            async login(email, password) {
+                const response = await this.makeRequest('/users/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.success && response.token) {
+                    this.setToken(response.token);
+                }
+                
+                return response;
+            }
+
+            async getBooks() {
+                return this.makeRequest('/books');
+            }
+
+            async getUsers() {
+                return this.makeRequest('/users');
+            }
+
+            async getTransactions() {
+                return this.makeRequest('/transactions');
+            }
+
+            async getAppointments() {
+                return this.makeRequest('/appointments');
+            }
+
+            async getComments() {
+                return this.makeRequest('/comments');
+            }
+
+            async createBook(bookData) {
+                return this.makeRequest('/books', {
+                    method: 'POST',
+                    body: JSON.stringify(bookData)
+                });
+            }
+        }
+
+        // Initialize API client
+        const api = new BookstoreAPIClient();
+
+        // Helper function to display response
+        function displayResponse(data, success = true) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = JSON.stringify(data, null, 2);
+            responseDiv.className = success ? 'response success' : 'response error';
+        }
+
+        // Register user
+        async function registerUser() {
+            try {
+                const userData = {
+                    name: document.getElementById('regName').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value,
+                    role: document.getElementById('regRole').value
+                };
+
+                const response = await api.register(userData);
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Login user
+        async function loginUser() {
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const response = await api.login(email, password);
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Get books
+        async function getBooks() {
+            try {
+                const response = await api.getBooks();
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Get users
+        async function getUsers() {
+            try {
+                const response = await api.getUsers();
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Get transactions
+        async function getTransactions() {
+            try {
+                const response = await api.getTransactions();
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Get appointments
+        async function getAppointments() {
+            try {
+                const response = await api.getAppointments();
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Get comments
+        async function getComments() {
+            try {
+                const response = await api.getComments();
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+
+        // Create book
+        async function createBook() {
+            try {
+                const bookData = {
+                    title: document.getElementById('bookTitle').value,
+                    author: document.getElementById('bookAuthor').value,
+                    isbn: document.getElementById('bookIsbn').value,
+                    genre: document.getElementById('bookGenre').value,
+                    publishedYear: parseInt(document.getElementById('bookYear').value),
+                    price: parseFloat(document.getElementById('bookPrice').value)
+                };
+
+                const response = await api.createBook(bookData);
+                displayResponse(response);
+            } catch (error) {
+                displayResponse({ error: error.message }, false);
+            }
+        }
+    </script>
+</body>
+</html>
