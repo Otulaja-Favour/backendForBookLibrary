@@ -73,6 +73,64 @@ app.get('/api', (req, res) => {
   });
 });
 
+// Test data endpoint
+app.get('/api/test-data', (req, res) => {
+  res.json({
+    message: 'Sample data for testing endpoints',
+    testCredentials: {
+      user: { email: 'john@example.com', password: 'password123' },
+      admin: { email: 'jane@example.com', password: 'password123' }
+    },
+    sampleData: {
+      newUser: {
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        phoneNumber: '1111111111',
+        password: 'password123',
+        role: 'user'
+      },
+      newBook: {
+        title: 'Test Book',
+        author: 'Test Author',
+        isbn: '978-1-111-11111-1',
+        category: 'Test Category',
+        description: 'A book for testing purposes',
+        price: 19.99,
+        rent: 4.99,
+        availability: true,
+        language: 'English',
+        pages: 200,
+        publisher: 'Test Publisher'
+      },
+      newTransaction: {
+        bookId: 'book_001',
+        type: 'borrow',
+        dueDate: '2025-08-01T00:00:00.000Z',
+        totalAmount: 3.99,
+        paymentMethod: 'credit_card',
+        status: 'completed'
+      },
+      newAppointment: {
+        subject: 'Test Appointment',
+        details: 'This is a test appointment',
+        date: '2025-07-20T10:00:00.000Z'
+      },
+      newComment: {
+        bookId: 'book_001',
+        content: 'This is a test comment for the book',
+        rating: 5
+      }
+    },
+    instructions: [
+      '1. First login using test credentials',
+      '2. Use the returned JWT token in Authorization header',
+      '3. Test creating new records using the sample data above',
+      '4. Run "npm run seed-test-data" to populate with test data'
+    ]
+  });
+});
+
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
