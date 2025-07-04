@@ -39,7 +39,8 @@ app.use(express.urlencoded({ extended: true }));
 const connectDB = async () => {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not set');
+      console.log('⚠️  MONGODB_URI not set - running without database');
+      return;
     }
     
     await mongoose.connect(process.env.MONGODB_URI, {
@@ -49,9 +50,8 @@ const connectDB = async () => {
     console.log('✅ MongoDB connected successfully');
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    console.error('Make sure MONGODB_URI is set in environment variables');
-    // Don't exit the process, let the app continue without DB for now
-    // process.exit(1);
+    console.log('⚠️  Continuing without database connection');
+    // Don't crash the app - continue without DB
   }
 };
 
